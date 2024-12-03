@@ -76,5 +76,6 @@ def update_output(value):
     return f'You have selected Book ID: {value}'
 
 
+
 if __name__ == '__main__':
     app.run_server(debug=True, port=8051)
