@@ -70,6 +70,9 @@ book_ratings = df_merged.groupby('Title')['Rating'].mean().reset_index()
 # Prepare dropdown options for books
 books_options = [{'label': row['Title'], 'value': row['Title']} for index, row in book_sales.iterrows()]
 
+# Get top 10 selling books
+top_10_books = book_sales.sort_values(by='Total Sales', ascending=False).head(10)
+
 # Create a Dash app
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
@@ -109,13 +112,22 @@ app.layout = html.Div([
                 config={'displayModeBar': False}
             )
         ], width=12)
+    ]),
+    dbc.Row([
+        dbc.Col([
+            html.H3("Top 10 Selling Books"),
+            dcc.Graph(
+                id='top-10-books-bar-chart',
+                config={'displayModeBar': False}
+            )
+        ], width=12)
     ])
+
 ])
 
 
 # Callback to update book selection output
-@app.callback(
-    Output('book-output', 'children'),
+@app.callback(Output('book-output', 'children'),
     Input('book-dropdown', 'value')
 )
 def update_output(selected_book):
@@ -126,10 +138,7 @@ def update_output(selected_book):
 
 
 # Callback to update the sales chart
-@app.callback(
-    Output('sales-bar-chart', 'figure'),
-    Input('book-dropdown', 'value')
-)
+@app.callback(Output('sales-bar-chart', 'figure'),Input('book-dropdown', 'value')     )
 def update_sales_chart(selected_book):
     if selected_book:
         filtered_sales = book_sales[book_sales['Title'] == selected_book]
@@ -160,9 +169,7 @@ def update_sales_chart(selected_book):
 
 
 # Callback to update the review chart
-@app.callback(
-    Output('review-bar-chart', 'figure'),
-    Input('book-dropdown', 'value')
+@app.callback( Output('review-bar-chart', 'figure'),Input('book-dropdown', 'value')
 )
 def update_review_chart(selected_book):
     if selected_book:
@@ -195,9 +202,7 @@ def update_review_chart(selected_book):
 
 
 # Callback to update the sales trend line chart
-@app.callback(
-    Output('sales-trend-line-chart', 'figure'),
-    Input('book-dropdown', 'value')
+@app.callback(Output('sales-trend-line-chart', 'figure'), Input('book-dropdown', 'value')
 )
 def update_sales_trend_chart(selected_book):
     if selected_book:
@@ -236,7 +241,38 @@ def update_sales_trend_chart(selected_book):
         fig.update_layout(xaxis_tickangle=45)
     return fig
 
+# Callback to display Top 10 Selling Books
+@app.callback(
+    Output('top-10-books-bar-chart', 'figure'),
+    Input('book-dropdown', 'value')
+)
+def update_top_10_books_chart(selected_book):
+    # Sort the books by Total Sales in descending order and get the top 10
+    top_10_books = book_sales.sort_values(by='Total Sales', ascending=False).head(10)
+
+    # Add a 'Rank' column to display ranking
+    top_10_books['Rank'] = range(1, len(top_10_books) + 1)
+
+    # Create a bar chart showing the rank of books by their total sales
+    fig = px.bar(
+        top_10_books,
+        x='Title',  # Book Title on x-axis
+        y='Rank',  # Rank on y-axis
+        title="Top 10 Selling Books",
+        labels={'Title': 'Book Title', 'Rank': 'Rank'},
+        color='Rank',  # Color by rank to differentiate the bars
+        height=500
+    )
+
+    # Add ranking as text labels on the bars
+    fig.update_traces(text=top_10_books['Rank'], textposition='outside')
+
+    # Rotate x-axis labels for better readability
+    fig.update_layout(xaxis_tickangle=45)
+
+    return fig
+
+
 # Run the app
 if __name__ == '__main__':
     app.run_server(debug=True, port=8054)
-
