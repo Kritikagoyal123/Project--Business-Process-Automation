@@ -1,6 +1,5 @@
 # Importing required libraries
-# Essential Libraries: Import Python libraries like requests, dash, dash_bootstrap_components, pandas, and plotly.
-
+# These libraries are essential for web scraping, creating the dashboard, handling data, and visualizing it
 import requests
 import dash
 from dash import dcc, html
@@ -10,45 +9,38 @@ import pandas as pd
 import plotly.express as px
 import numpy as np
 
-
-# Defined a Function to Fetch Data from Google Sheets
-
+# Function to fetch data from Google Sheets using an API
 def fetch_google_sheet_data(url):
-    response = requests.get(url)  # Make an HTTP GET request to the provided URL
-    if response.status_code == 200:
-        data = response.json()  # Parse the response as JSON
-        values = data.get('values', [])  # Extract values from the JSON response
+    # Making an HTTP GET request to the provided Google Sheets API URL
+    response = requests.get(url)
+    if response.status_code == 200:  # Check if the request was successful
+        data = response.json()  # Parse the response as JSON data
+        values = data.get('values', [])  # Extract the data values from the JSON
         if values:
-            header = values[0]  # First row is treated as column headers
-            rows = values[1:]  # Remaining rows contain data
-            df = pd.DataFrame(rows, columns=header)  # Create a DataFrame
-            return df
+            header = values[0]  # First row contains the column headers
+            rows = values[1:]  # The rest of the rows contain the actual data
+            df = pd.DataFrame(rows, columns=header)  # Convert the rows into a pandas DataFrame
+            return df  # Return the DataFrame with the data
         else:
-            print("No data found in the sheet")
-            return pd.DataFrame()  # Return empty DataFrame if no data
+            print("No data found in the sheet")  # Print message if no data is found
+            return pd.DataFrame()  # Return an empty DataFrame if no data
     else:
+        # If the HTTP request fails (not a status code 200)
         print(f"Failed to fetch data. HTTP Status Code: {response.status_code}")
-        return pd.DataFrame()  # Return empty DataFrame if request fails
+        return pd.DataFrame()  # Return an empty DataFrame if the request fails
 
-
-# Google Sheets URLs
-# URL for book details
+# URLs to fetch data from multiple Google Sheets
+# These URLs point to the Google Sheets API endpoints for fetching various types of data
 book_url = "https://sheets.googleapis.com/v4/spreadsheets/1d974FnqiPtsTgekWMJBuD8mkeN0v7xo2MpBUhd_CNKw/values/Book!A1:C59?key=AIzaSyA2tl9b-0I65tDVOmMMwnax45raYyk4Q0s"
-# URL for edition details
 edition_url = "https://sheets.googleapis.com/v4/spreadsheets/1d974FnqiPtsTgekWMJBuD8mkeN0v7xo2MpBUhd_CNKw/values/Edition!A1:H96?key=AIzaSyA2tl9b-0I65tDVOmMMwnax45raYyk4Q0s"
-# URL for Q1 sales data
 sales_q1_url = "https://sheets.googleapis.com/v4/spreadsheets/1d974FnqiPtsTgekWMJBuD8mkeN0v7xo2MpBUhd_CNKw/values/Sales Q1!A1:E7786?key=AIzaSyA2tl9b-0I65tDVOmMMwnax45raYyk4Q0s"
-# URL for Q2 sales data
 sales_q2_url = "https://sheets.googleapis.com/v4/spreadsheets/1d974FnqiPtsTgekWMJBuD8mkeN0v7xo2MpBUhd_CNKw/values/Sales Q2!A1:E13355?key=AIzaSyA2tl9b-0I65tDVOmMMwnax45raYyk4Q0s"
-# URL for Q3 sales data
 sales_q3_url = "https://sheets.googleapis.com/v4/spreadsheets/1d974FnqiPtsTgekWMJBuD8mkeN0v7xo2MpBUhd_CNKw/values/Sales Q3!A1:E22119?key=AIzaSyA2tl9b-0I65tDVOmMMwnax45raYyk4Q0s"
-# URL for Q4 sales data
 sales_q4_url = "https://sheets.googleapis.com/v4/spreadsheets/1d974FnqiPtsTgekWMJBuD8mkeN0v7xo2MpBUhd_CNKw/values/Sales Q4!A1:E13094?key=AIzaSyA2tl9b-0I65tDVOmMMwnax45raYyk4Q0s"
-# URL for author details
 author_url = "https://sheets.googleapis.com/v4/spreadsheets/1d974FnqiPtsTgekWMJBuD8mkeN0v7xo2MpBUhd_CNKw/values/Author!A1:F42?key=AIzaSyA2tl9b-0I65tDVOmMMwnax45raYyk4Q0s"
 
-# Load data from Google Sheets into DataFrames
-# Fetch Data from Multiple Google Sheets
+# Load data from the Google Sheets URLs into pandas DataFrames
+# We are calling the `fetch_google_sheet_data` function to get data from each URL
 df_books = fetch_google_sheet_data(book_url)
 df_sales_q1 = fetch_google_sheet_data(sales_q1_url)
 df_sales_q2 = fetch_google_sheet_data(sales_q2_url)
@@ -57,48 +49,48 @@ df_sales_q4 = fetch_google_sheet_data(sales_q4_url)
 df_edition = fetch_google_sheet_data(edition_url)
 df_authors = fetch_google_sheet_data(author_url)
 
-# Add a 'Quarter' column to distinguish data by quarter
+# Add a 'Quarter' column to each sales DataFrame to indicate which quarter the sales data belongs to
 df_sales_q1['Quarter'] = 'Q1'
 df_sales_q2['Quarter'] = 'Q2'
 df_sales_q3['Quarter'] = 'Q3'
 df_sales_q4['Quarter'] = 'Q4'
 
-# Combine all quarterly sales data into one DataFrame
+# Concatenate all sales data into a single DataFrame (combining the quarterly data)
 df_sales = pd.concat([df_sales_q1, df_sales_q2, df_sales_q3, df_sales_q4])
 
-# Merge sales data with edition and book details
+# Merge sales data with edition and book details based on ISBN and BookID
 df_merged = pd.merge(df_sales, df_edition, on='ISBN', how='inner')
 df_merged = pd.merge(df_merged, df_books, on='BookID', how='inner')
 
-# Merge author details with the combined data
+# Merge author details with the combined data based on AuthID
 df_merged = pd.merge(df_merged, df_authors, on='AuthID', how='left')
 
-# Generate random ratings if the 'Rating' column is missing
+# If the 'Rating' column does not exist, generate random ratings between 1 and 5
 if 'Rating' not in df_merged.columns:
-    df_merged['Rating'] = np.random.randint(1, 5, size=len(df_merged))
+    df_merged['Rating'] = np.random.randint(1, 6, size=len(df_merged))
 
-# Calculate total sales for each book
+# Calculate the total sales for each book by counting the number of orders per book
 df_merged['Total Sales'] = df_merged.groupby('Title')['OrderID'].transform('count')
 
-# Summarize total sales and average ratings for each book
+# Aggregate total sales and average ratings by book title
 book_sales = df_merged.groupby('Title')['Total Sales'].sum().reset_index()
 book_ratings = df_merged.groupby('Title')['Rating'].mean().reset_index()
 
-# Prepare options for dropdown
+# Prepare the dropdown options for the books by iterating through the book_sales DataFrame
 books_options = []
 for index, row in book_sales.iterrows():
-    book_option = {'label': row['Title'], 'value': row['Title']}
+    book_option = {'label': row['Title'], 'value': row['Title']}  # For each book, create a dropdown option
     books_options.append(book_option)
 
-# Get top 10 selling books
+# Get the top 10 best-selling books based on total sales
 top_10_books = book_sales.sort_values(by='Total Sales', ascending=False).head(10)
 
-# Create a Dash App Layout
+# Initialize the Dash app and set up the layout
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 app.layout = html.Div([  # The root layout for the dashboard
 
-    # Layout- Header Section with Titles
+    # Layout - Header Section with Titles
     dbc.Row([  # A row for the header
         dbc.Col([  # A single column that spans the entire row
             html.H1("Bookshop Dashboard", style={  # The main dashboard title
@@ -236,6 +228,7 @@ app.layout = html.Div([  # The root layout for the dashboard
 
 ], style={'backgroundColor': '#2C3E50', 'color': '#fff'})  # Overall dashboard background and text color
 
+# This section handles the callback logic to update the graphs based on the dropdown selection
 # Callback to update the sales chart
 
 @app.callback(Output('sales-bar-chart', 'figure'),Input('book-dropdown', 'value')     )
