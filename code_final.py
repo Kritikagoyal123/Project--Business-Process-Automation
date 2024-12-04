@@ -34,6 +34,7 @@ sales_q1_url = "https://sheets.googleapis.com/v4/spreadsheets/1d974FnqiPtsTgekWM
 sales_q2_url = "https://sheets.googleapis.com/v4/spreadsheets/1d974FnqiPtsTgekWMJBuD8mkeN0v7xo2MpBUhd_CNKw/values/Sales Q2!A1:E13355?key=AIzaSyA2tl9b-0I65tDVOmMMwnax45raYyk4Q0s"
 sales_q3_url = "https://sheets.googleapis.com/v4/spreadsheets/1d974FnqiPtsTgekWMJBuD8mkeN0v7xo2MpBUhd_CNKw/values/Sales Q3!A1:E22119?key=AIzaSyA2tl9b-0I65tDVOmMMwnax45raYyk4Q0s"
 sales_q4_url = "https://sheets.googleapis.com/v4/spreadsheets/1d974FnqiPtsTgekWMJBuD8mkeN0v7xo2MpBUhd_CNKw/values/Sales Q4!A1:E13094?key=AIzaSyA2tl9b-0I65tDVOmMMwnax45raYyk4Q0s"
+author_url = "https://sheets.googleapis.com/v4/spreadsheets/1d974FnqiPtsTgekWMJBuD8mkeN0v7xo2MpBUhd_CNKw/values/Author!A1:F42?key=AIzaSyA2tl9b-0I65tDVOmMMwnax45raYyk4Q0s"
 
 # Fetch data
 df_books = fetch_google_sheet_data(book_url)
@@ -42,6 +43,7 @@ df_sales_q2 = fetch_google_sheet_data(sales_q2_url)
 df_sales_q3 = fetch_google_sheet_data(sales_q3_url)
 df_sales_q4 = fetch_google_sheet_data(sales_q4_url)
 df_edition = fetch_google_sheet_data(edition_url)
+df_authors = fetch_google_sheet_data(author_url)
 
 # Add Quarter column to each sales dataframe
 df_sales_q1['Quarter'] = 'Q1'
@@ -55,6 +57,9 @@ df_sales = pd.concat([df_sales_q1, df_sales_q2, df_sales_q3, df_sales_q4])
 # Merge with Edition and Books DataFrames
 df_merged = pd.merge(df_sales, df_edition, on='ISBN', how='inner')
 df_merged = pd.merge(df_merged, df_books, on='BookID', how='inner')
+
+# Merge Author information with Books (on AuthID)
+df_merged = pd.merge(df_merged, df_authors, on='AuthID', how='left')
 
 # Generate random ratings if missing
 if 'Rating' not in df_merged.columns:
@@ -78,63 +83,152 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 # Layout of the app
 app.layout = html.Div([
+    # Header Section with Titles
     dbc.Row([
         dbc.Col([
-            html.H3("Select a Book"),
+            html.H1("Bookshop Dashboard", style={
+                'textAlign': 'center',
+                'marginBottom': '20px',
+                'fontSize': '48px',
+                'fontWeight': 'bold',
+                'color': '#FFFFFF',  # White text for contrast
+                'fontFamily': 'Arial, sans-serif'  # Modern font
+            })
+        ], width=12)
+    ], style={'marginBottom': '20px'}),  # Space between header and content
+
+    # Book Selection and Author Name Section
+    dbc.Row([
+        # Select Book Dropdown
+        dbc.Col([
+            html.H3("Book Name", style={
+                'textAlign': 'center',
+                'marginBottom': '15px',
+                'fontSize': '20px',
+                'color': 'white',  # Blue
+                'fontWeight': 'bold',
+                'fontFamily': 'Arial, sans-serif'
+            }),
             dcc.Dropdown(
                 id='book-dropdown',
                 options=books_options,
-                placeholder="Select a Book"
+                placeholder="Please select a book",
+                style={
+                    'width': '100%',
+                    'fontSize': '15px',
+                    'padding': '15px',
+                    'borderRadius': '8px',
+                    'border': '1px solid #BDC3C7',  # Border
+                    'backgroundColor': '#ECF0F1',  # Light gray background
+                    'color': 'black',
+                    'textAlign': 'center',
+
+
+
+                }
             ),
-        ], width=6)
-    ]),
+        ], width=6, style={'paddingLeft': '30px'}),
+
+        # Author Name Box
+        dbc.Col([
+            html.H3("Author Name", style={
+                'textAlign': 'center',
+                'marginBottom': '15px',
+                'fontSize': '20px',
+                'color': 'white',
+
+                'fontFamily': 'Arial, sans-serif'
+
+}),
+            dbc.Card(
+                dbc.CardBody([
+                    html.Div(id='author-name', style={
+                        'fontSize': '24px',
+                        'fontWeight': 'bold',
+                        'padding': '15px',
+                        'border': '1px solid #BDC3C7',  # Border
+                        'borderRadius': '8px',  # Rounded corners
+                        'backgroundColor': '#ECF0F1',  # Light background
+                        'textAlign': 'center',
+                        'color': 'black'  # Blue color for the count
+                    })
+                ]),
+                style={
+                    'boxShadow': '0 4px 8px rgba(0,0,0,0.2)',
+                    'borderRadius': '8px',
+                    'backgroundColor': '#fff'
+                }
+            )
+        ], width=5, style={'paddingLeft': '30px'}),  # Adjust the width of the column
+    ], style={'marginBottom': '20px'}),  # Add space between rows
+
+    # Book Output Row
     dbc.Row([
-        dbc.Col(html.Div(id='book-output'), width=6),
-    ]),
+        dbc.Col(html.Div(id='book-output'), width=6, style={'padding': '10px'})
+    ], style={'marginBottom': '20px'}),
+
+    # Sales and Review Charts Row
     dbc.Row([
         dbc.Col([
             dcc.Graph(
                 id='sales-bar-chart',
-                config={'displayModeBar': False}
+                config={'displayModeBar': False},
+                style={
+                    'height': '800px',  # Set the same height for all charts
+                    'padding': '20px'  # Uniform padding for the chart
+                }
             )
-        ], width=6),
+        ], width=6, style={'padding': '10px'}),
         dbc.Col([
             dcc.Graph(
                 id='review-bar-chart',
-                config={'displayModeBar': False}
+                config={'displayModeBar': False},
+                style={
+                    'height': '800px',  # Set the same height for all charts
+                    'padding': '20px'  # Uniform padding for the chart
+                }
             )
-        ], width=6)
-    ]),
+        ], width=6, style={'padding': '10px'})
+    ], style={'marginBottom': '20px'}),  # Add space between charts
+
+    # Sales Trend Line Chart Row
+    # Sales Trend and Top 10 Books side by side
     dbc.Row([
+        # Sales Trend Line Chart
         dbc.Col([
             dcc.Graph(
                 id='sales-trend-line-chart',
-                config={'displayModeBar': False}
+                config={'displayModeBar': False},
+                style={
+                    'height': '800px',  # Set the same height for all charts
+                    'padding': '20px'  # Uniform padding for the chart
+                }
             )
-        ], width=12)
-    ]),
-    dbc.Row([
+        ], width=6, style={'padding': '20px'}),  # Width set to 6 (half of the row)
+
+        # Top 10 Selling Books Chart
         dbc.Col([
-            html.H3("Top 10 Selling Books"),
+            html.H3(style={
+                'textAlign': 'center',
+                'marginBottom': '20px',
+                'fontSize': '24px',
+                'fontWeight': 'bold',
+                'color': '#2980B9',  # Blue color
+                'fontFamily': 'Arial, sans-serif'
+            }),
             dcc.Graph(
                 id='top-10-books-bar-chart',
-                config={'displayModeBar': False}
+                config={'displayModeBar': False},
+                style={
+                    'height': '800px',  # Set the same height for all charts
+                    'padding': '20px'  # Uniform padding for the chart
+                }
             )
-        ], width=12)
-    ])
+        ], width=6, style={'padding': '10px'})  # Width set to 6 (half of the row)
+    ], style={'marginBottom': '20px'})  # Add space between the charts
 
-])
+], style={'backgroundColor': '#2C3E50', 'color': '#fff'})  # Overall background color and white text
 
-
-# Callback to update book selection output
-@app.callback(Output('book-output', 'children'),
-    Input('book-dropdown', 'value')
-)
-def update_output(selected_book):
-    if selected_book:
-        total_sales = book_sales.loc[book_sales['Title'] == selected_book, 'Total Sales'].values[0]
-        return f'Total Sales for "{selected_book}": {total_sales}'
-    return "No book selected."
 
 
 # Callback to update the sales chart
@@ -272,6 +366,18 @@ def update_top_10_books_chart(selected_book):
 
     return fig
 
+# Callback to update the Author Name
+@app.callback(
+    Output('author-name', 'children'),
+    Input('book-dropdown', 'value')
+)
+def update_author_name(selected_book):
+    if selected_book:
+        # Get the Author Name for the selected book
+        author_first_name = df_merged.loc[df_merged['Title'] == selected_book, 'First Name'].values[0]
+        author_last_name = df_merged.loc[df_merged['Title'] == selected_book, 'Last Name'].values[0]
+        return f'{author_first_name} {author_last_name}'
+    return "No book selected."
 
 # Run the app
 if __name__ == '__main__':
