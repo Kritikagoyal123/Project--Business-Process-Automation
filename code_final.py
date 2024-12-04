@@ -71,7 +71,7 @@ df_merged = pd.merge(df_merged, df_authors, on='AuthID', how='left')
 
 # Generate random ratings if the 'Rating' column is missing
 if 'Rating' not in df_merged.columns:
-    df_merged['Rating'] = np.random.randint(1, 6, size=len(df_merged))
+    df_merged['Rating'] = np.random.randint(1, 5, size=len(df_merged))
 
 # Calculate total sales for each book
 df_merged['Total Sales'] = df_merged.groupby('Title')['OrderID'].transform('count')
@@ -81,7 +81,10 @@ book_sales = df_merged.groupby('Title')['Total Sales'].sum().reset_index()
 book_ratings = df_merged.groupby('Title')['Rating'].mean().reset_index()
 
 # Prepare options for dropdown
-books_options = [{'label': row['Title'], 'value': row['Title']} for index, row in book_sales.iterrows()]
+books_options = []
+for index, row in book_sales.iterrows():
+    book_option = {'label': row['Title'], 'value': row['Title']}
+    books_options.append(book_option)
 
 # Get top 10 selling books
 top_10_books = book_sales.sort_values(by='Total Sales', ascending=False).head(10)
