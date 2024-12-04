@@ -1,4 +1,6 @@
 # Importing required libraries
+# Essential Libraries: Import Python libraries like requests, dash, dash_bootstrap_components, pandas, and plotly.
+
 import requests
 import dash
 from dash import dcc, html
@@ -9,7 +11,8 @@ import plotly.express as px
 import numpy as np
 
 
-# Function to fetch Google Sheets data
+# Defined a Function to Fetch Data from Google Sheets
+
 def fetch_google_sheet_data(url):
     response = requests.get(url)  # Make an HTTP GET request to the provided URL
     if response.status_code == 200:
@@ -45,6 +48,7 @@ sales_q4_url = "https://sheets.googleapis.com/v4/spreadsheets/1d974FnqiPtsTgekWM
 author_url = "https://sheets.googleapis.com/v4/spreadsheets/1d974FnqiPtsTgekWMJBuD8mkeN0v7xo2MpBUhd_CNKw/values/Author!A1:F42?key=AIzaSyA2tl9b-0I65tDVOmMMwnax45raYyk4Q0s"
 
 # Load data from Google Sheets into DataFrames
+# Fetch Data from Multiple Google Sheets
 df_books = fetch_google_sheet_data(book_url)
 df_sales_q1 = fetch_google_sheet_data(sales_q1_url)
 df_sales_q2 = fetch_google_sheet_data(sales_q2_url)
@@ -89,13 +93,13 @@ for index, row in book_sales.iterrows():
 # Get top 10 selling books
 top_10_books = book_sales.sort_values(by='Total Sales', ascending=False).head(10)
 
-# Create a Dash app
+# Create a Dash App Layout
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 app.layout = html.Div([  # The root layout for the dashboard
 
-    # Header Section with Titles
-    dbc.Row([  # A Bootstrap row for the header
+    # Layout- Header Section with Titles
+    dbc.Row([  # A row for the header
         dbc.Col([  # A single column that spans the entire row
             html.H1("Bookshop Dashboard", style={  # The main dashboard title
                 'textAlign': 'center',  # Center-aligned text
@@ -108,7 +112,7 @@ app.layout = html.Div([  # The root layout for the dashboard
         ], width=12)  # Column spans all 12 grid spaces (full width)
     ], style={'marginBottom': '20px'}),  # Space below the header row
 
-    # Book Selection and Author Name Section
+    # Layout - Book Selection and Author Name Section
     dbc.Row([  # A Bootstrap row containing the dropdown and author name
         # Select Book Dropdown
         dbc.Col([  # First column for the dropdown
@@ -137,7 +141,7 @@ app.layout = html.Div([  # The root layout for the dashboard
             ),
         ], width=6, style={'paddingLeft': '30px'}),  # Column width and left padding
 
-        # Author Name Box
+        # Layout- Author Name Box
         dbc.Col([  # Second column for the author name card
             html.H3("Author Name", style={  # Label for the author name
                 'textAlign': 'center',  # Center-aligned text
@@ -167,7 +171,7 @@ app.layout = html.Div([  # The root layout for the dashboard
         ], width=5, style={'paddingLeft': '30px'}),  # Column width and left padding
     ], style={'marginBottom': '20px'}),  # Space between this row and the next
 
-    # Book Output Row
+    # Layout- Book Output Row
     dbc.Row([  # Row to display additional book-related information
         dbc.Col(html.Div(id='book-output'), width=6, style={'padding': '10px'})
     ], style={'marginBottom': '20px'}),
@@ -196,7 +200,7 @@ app.layout = html.Div([  # The root layout for the dashboard
         ], width=6, style={'padding': '10px'})  # Column width and padding
     ], style={'marginBottom': '20px'}),
 
-    # Sales Trend Line Chart Row
+    # Layout - Sales Trend Line Chart Row
     dbc.Row([  # Row for the sales trend and top 10 books charts
         dbc.Col([  # First column for the sales trend line chart
             dcc.Graph(
@@ -209,7 +213,7 @@ app.layout = html.Div([  # The root layout for the dashboard
             )
         ], width=6, style={'padding': '20px'}),  # Column width and padding
 
-        # Top 10 Selling Books Chart
+        # Layout - Top 10 Selling Books Chart
         dbc.Col([  # Second column for the top 10 selling books bar chart
             html.H3(style={  # Placeholder for any additional heading
                 'textAlign': 'center',  # Center-aligned text
@@ -233,6 +237,7 @@ app.layout = html.Div([  # The root layout for the dashboard
 ], style={'backgroundColor': '#2C3E50', 'color': '#fff'})  # Overall dashboard background and text color
 
 # Callback to update the sales chart
+
 @app.callback(Output('sales-bar-chart', 'figure'),Input('book-dropdown', 'value')     )
 def update_sales_chart(selected_book):
     if selected_book:
@@ -377,4 +382,4 @@ def update_author_name(selected_book):
 
 # Run the dashboard
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8054)
+    app.run_server(debug=True, port=8055)
