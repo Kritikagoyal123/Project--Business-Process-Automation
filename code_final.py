@@ -339,8 +339,8 @@ def update_top_10_books_chart(selected_book):
     # Sort the books by Total Sales in descending order and get the top 10
     top_10_books = book_sales.sort_values(by='Total Sales', ascending=False).head(10)
 
-    # Add a 'Rank' column to display ranking
-    top_10_books['Rank'] = range(1, len(top_10_books) + 1)
+    # Add a 'Rank' column with 1 for the highest sales
+    top_10_books['Rank'] = range(len(top_10_books), 0, -1)
 
     # Create a bar chart showing the rank of books by their total sales
     fig = px.bar(
@@ -354,7 +354,7 @@ def update_top_10_books_chart(selected_book):
     )
 
     # Add ranking as text labels on the bars
-    fig.update_traces(text=top_10_books['Rank'], textposition='outside')
+    fig.update_traces(text=11-top_10_books['Rank'], textposition='outside')
 
     # Rotate x-axis labels for better readability
     fig.update_layout(xaxis_tickangle=45)
