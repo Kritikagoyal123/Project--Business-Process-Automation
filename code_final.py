@@ -353,11 +353,19 @@ def update_top_10_books_chart(selected_book):
         height=500
     )
 
-    # Add ranking as text labels on the bars
-    fig.update_traces(text=11-top_10_books['Rank'], textposition='outside')
-
-    # Rotate x-axis labels for better readability
-    fig.update_layout(xaxis_tickangle=45)
+    # Rotate x-axis labels
+    fig.update_layout(
+        yaxis=dict(
+            tickvals=top_10_books['Rank'],  # Use the Rank values
+            ticktext=list(range(1, len(top_10_books) + 1)),  # Reverse the displayed text
+        ),
+        xaxis_tickangle=45,  # Rotate x-axis labels for better readability
+        coloraxis_colorbar=dict(
+            tickvals=top_10_books['Rank'],  # Align color ticks with Rank values
+            ticktext=list(range(1, len(top_10_books) + 1)),  # Reverse the color bar labels
+            title="Rank",  # Title for the color bar
+        )
+    )
     return fig
 
 # Callback to update the Author Name
