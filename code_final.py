@@ -86,23 +86,62 @@ for index, row in book_sales.iterrows():
 top_10_books = book_sales.sort_values(by='Total Sales', ascending=False).head(10)
 
 # Initialize the Dash app and set up the layout
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.CERULEAN])
 
-app.layout = html.Div([  # The root layout for the dashboard
-
-    # Layout - Header Section with Titles
-    dbc.Row([  # A row for the header
-        dbc.Col([  # A single column that spans the entire row
-            html.H1("Bookshop Dashboard", style={  # The main dashboard title
-                'textAlign': 'center',  # Center-aligned text
-                'marginBottom': '20px',  # Space below the title
-                'fontSize': '48px',  # Font size
-                'fontWeight': 'bold',  # Bold font
-                'color': '#FFFFFF',  # White text color for contrast
-                'fontFamily': 'Arial, sans-serif'  # Modern font style
+app.layout = html.Div([
+    # Header Section
+    dbc.Row([
+        dbc.Col([
+            html.H1("📚 Bookshop Dashboard", style={
+                'textAlign': 'center',
+                'fontSize': '48px',
+                'marginBottom': '10px'
+            }),
+            html.H5("Visualizing book sales and trends interactively", style={
+                'textAlign': 'center',
+                'color': '#5D4037',
+                'fontStyle': 'italic'
             })
-        ], width=12)  # Column spans all 12 grid spaces (full width)
-    ], style={'marginBottom': '20px'}),  # Space below the header row
+        ])
+    ], style={'marginBottom': '30px'}),
+
+    # Statistics Cards
+    dbc.Row([
+        dbc.Col([
+            dbc.Card([
+                dbc.CardBody([
+                    html.H5("Total Sales", className="card-title", style={'textAlign': 'center'}),
+                    html.P(f"{book_sales['Total Sales'].sum()} books sold", className="card-text",
+                           style={'textAlign': 'center', 'fontSize': '20px'}),
+                    html.I(className="bi bi-graph-up-arrow",
+                           style={'fontSize': '40px', 'color': '#FFD700', 'textAlign': 'center'})
+                ])
+            ], color="primary", inverse=True, style={'margin': '10px', 'boxShadow': '0 4px 8px rgba(0,0,0,0.2)'})
+        ], width=4),
+
+        dbc.Col([
+            dbc.Card([
+                dbc.CardBody([
+                    html.H5("Total Books", className="card-title", style={'textAlign': 'center'}),
+                    html.P(f"{len(book_sales)} unique titles", className="card-text",
+                           style={'textAlign': 'center', 'fontSize': '20px'}),
+                    html.I(className="bi bi-book-fill",
+                           style={'fontSize': '40px', 'color': '#FFD700', 'textAlign': 'center'})
+                ])
+            ], color="success", inverse=True, style={'margin': '10px', 'boxShadow': '0 4px 8px rgba(0,0,0,0.2)'})
+        ], width=4),
+
+        dbc.Col([
+            dbc.Card([
+                dbc.CardBody([
+                    html.H5("Top Genre", className="card-title", style={'textAlign': 'center'}),
+                    html.P("Sci-Fi/Fantasy", className="card-text", style={'textAlign': 'center', 'fontSize': '20px'}),
+                    html.I(className="bi bi-star-fill",
+                           style={'fontSize': '40px', 'color': '#FFD700', 'textAlign': 'center'})
+                ])
+            ], color="info", inverse=True, style={'margin': '10px', 'boxShadow': '0 4px 8px rgba(0,0,0,0.2)'})
+        ], width=4)
+    ]),
 
     # Layout - Book Selection and Author Name Section
     dbc.Row([  # A Bootstrap row containing the dropdown and author name
@@ -111,8 +150,9 @@ app.layout = html.Div([  # The root layout for the dashboard
             html.H3("Book Name", style={  # Label for the dropdown
                 'textAlign': 'center',  # Center-aligned text
                 'marginBottom': '15px',  # Space below the label
+                'marginTop': '20px',  # Space below the label
                 'fontSize': '20px',  # Font size
-                'color': 'white',  # White text for visibility
+                'color': 'black',  # White text for visibility
                 'fontWeight': 'bold',  # Bold font
                 'fontFamily': 'Arial, sans-serif'  # Font style
             }),
@@ -138,8 +178,10 @@ app.layout = html.Div([  # The root layout for the dashboard
             html.H3("Author Name", style={  # Label for the author name
                 'textAlign': 'center',  # Center-aligned text
                 'marginBottom': '15px',  # Space below the label
+                'marginTop': '20px',
+                'fontWeight': 'bold',
                 'fontSize': '20px',  # Font size
-                'color': 'white',  # White text for visibility
+                'color': 'black',  # White text for visibility
                 'fontFamily': 'Arial, sans-serif'  # Font style
             }),
             dbc.Card(  # Card to display the author name
@@ -226,14 +268,15 @@ app.layout = html.Div([  # The root layout for the dashboard
         ], width=6, style={'padding': '10px'})  # Column width and padding
     ], style={'marginBottom': '20px'})
 
-], style={'backgroundColor': '#2C3E50', 'color': '#fff'})  # Overall dashboard background and text color
+], style={'backgroundColor': '#EAF6F6', 'color': '#084C61'})  # Overall dashboard background and text color
 
 # This section handles the callback logic to update the graphs based on the dropdown selection
 # Callback to update the sales chart
 
-@app.callback(Output('sales-bar-chart', 'figure'),Input('book-dropdown', 'value')     )
+@app.callback(Output('sales-bar-chart', 'figure'), Input('book-dropdown', 'value'))
 def update_sales_chart(selected_book):
     if selected_book:
+        # Filter for selected book
         filtered_sales = book_sales[book_sales['Title'] == selected_book]
         fig = px.bar(
             filtered_sales,
@@ -245,27 +288,30 @@ def update_sales_chart(selected_book):
             height=500
         )
     else:
+        # Show top 10 books by total sales
+        top_sales = book_sales.sort_values(by='Total Sales', ascending=False).head(10)
         fig = px.bar(
-            book_sales,
+            top_sales,
             x='Title',
             y='Total Sales',
-            title="Total Sales by Book",
+            title="Top 10 Books by Total Sales",
             labels={'Title': 'Book Title', 'Total Sales': 'Total Sales'},
             color='Total Sales',
             height=500
         )
+
     if selected_book:
         fig.update_layout(xaxis_tickangle=0)
     else:
         fig.update_layout(xaxis_tickangle=45)
+
     return fig
 
-
 # Callback to update the review chart
-@app.callback( Output('review-bar-chart', 'figure'),Input('book-dropdown', 'value')
-)
+@app.callback(Output('review-bar-chart', 'figure'), Input('book-dropdown', 'value'))
 def update_review_chart(selected_book):
     if selected_book:
+        # Filter for selected book
         filtered_reviews = book_ratings[book_ratings['Title'] == selected_book]
         fig = px.bar(
             filtered_reviews,
@@ -277,11 +323,13 @@ def update_review_chart(selected_book):
             height=500
         )
     else:
+        # Show top 10 books by average rating
+        top_ratings = book_ratings.sort_values(by='Rating', ascending=False).head(10)
         fig = px.bar(
-            book_ratings,
+            top_ratings,
             x='Title',
             y='Rating',
-            title="Average Ratings by Book",
+            title="Top 10 Books by Average Rating",
             labels={'Title': 'Book Title', 'Rating': 'Average Rating'},
             color='Rating',
             height=500
@@ -383,4 +431,4 @@ def update_author_name(selected_book):
 
 # Run the dashboard
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8055)
+    app.run_server(debug=True, port=8056)
