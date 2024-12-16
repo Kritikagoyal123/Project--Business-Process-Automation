@@ -8,6 +8,15 @@ from dash.dependencies import Input, Output
 import pandas as pd
 import plotly.express as px
 import numpy as np
+from dotenv import load_dotenv  # Correct library for environment variables
+import os
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Access environment variables
+api_key = os.getenv("API_KEY")  # Replace "API_KEY" with the variable name in your .env file
+
 
 # Function to fetch data from Google Sheets using an API
 def fetch_google_sheet_data(url):
@@ -31,13 +40,13 @@ def fetch_google_sheet_data(url):
 
 # URLs to fetch data from multiple Google Sheets
 # These URLs point to the Google Sheets API endpoints for fetching various types of data
-book_url = "https://sheets.googleapis.com/v4/spreadsheets/1d974FnqiPtsTgekWMJBuD8mkeN0v7xo2MpBUhd_CNKw/values/Book!A1:C59?key=AIzaSyA2tl9b-0I65tDVOmMMwnax45raYyk4Q0s"
-edition_url = "https://sheets.googleapis.com/v4/spreadsheets/1d974FnqiPtsTgekWMJBuD8mkeN0v7xo2MpBUhd_CNKw/values/Edition!A1:H96?key=AIzaSyA2tl9b-0I65tDVOmMMwnax45raYyk4Q0s"
-sales_q1_url = "https://sheets.googleapis.com/v4/spreadsheets/1d974FnqiPtsTgekWMJBuD8mkeN0v7xo2MpBUhd_CNKw/values/Sales Q1!A1:E7786?key=AIzaSyA2tl9b-0I65tDVOmMMwnax45raYyk4Q0s"
-sales_q2_url = "https://sheets.googleapis.com/v4/spreadsheets/1d974FnqiPtsTgekWMJBuD8mkeN0v7xo2MpBUhd_CNKw/values/Sales Q2!A1:E13355?key=AIzaSyA2tl9b-0I65tDVOmMMwnax45raYyk4Q0s"
-sales_q3_url = "https://sheets.googleapis.com/v4/spreadsheets/1d974FnqiPtsTgekWMJBuD8mkeN0v7xo2MpBUhd_CNKw/values/Sales Q3!A1:E22119?key=AIzaSyA2tl9b-0I65tDVOmMMwnax45raYyk4Q0s"
-sales_q4_url = "https://sheets.googleapis.com/v4/spreadsheets/1d974FnqiPtsTgekWMJBuD8mkeN0v7xo2MpBUhd_CNKw/values/Sales Q4!A1:E13094?key=AIzaSyA2tl9b-0I65tDVOmMMwnax45raYyk4Q0s"
-author_url = "https://sheets.googleapis.com/v4/spreadsheets/1d974FnqiPtsTgekWMJBuD8mkeN0v7xo2MpBUhd_CNKw/values/Author!A1:F42?key=AIzaSyA2tl9b-0I65tDVOmMMwnax45raYyk4Q0s"
+book_url = "https://sheets.googleapis.com/v4/spreadsheets/1d974FnqiPtsTgekWMJBuD8mkeN0v7xo2MpBUhd_CNKw/values/Book!A1:C59?key=" + api_key
+edition_url = "https://sheets.googleapis.com/v4/spreadsheets/1d974FnqiPtsTgekWMJBuD8mkeN0v7xo2MpBUhd_CNKw/values/Edition!A1:H96?key="  + api_key
+sales_q1_url = "https://sheets.googleapis.com/v4/spreadsheets/1d974FnqiPtsTgekWMJBuD8mkeN0v7xo2MpBUhd_CNKw/values/Sales Q1!A1:E7786?key="  + api_key
+sales_q2_url = "https://sheets.googleapis.com/v4/spreadsheets/1d974FnqiPtsTgekWMJBuD8mkeN0v7xo2MpBUhd_CNKw/values/Sales Q2!A1:E13355?key="  + api_key
+sales_q3_url = "https://sheets.googleapis.com/v4/spreadsheets/1d974FnqiPtsTgekWMJBuD8mkeN0v7xo2MpBUhd_CNKw/values/Sales Q3!A1:E22119?key="  + api_key
+sales_q4_url = "https://sheets.googleapis.com/v4/spreadsheets/1d974FnqiPtsTgekWMJBuD8mkeN0v7xo2MpBUhd_CNKw/values/Sales Q4!A1:E13094?key="  + api_key
+author_url = "https://sheets.googleapis.com/v4/spreadsheets/1d974FnqiPtsTgekWMJBuD8mkeN0v7xo2MpBUhd_CNKw/values/Author!A1:F42?key="  + api_key
 
 # Load data from the Google Sheets URLs into pandas DataFrames
 # We are calling the `fetch_google_sheet_data` function to get data from each URL
